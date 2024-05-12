@@ -3,9 +3,7 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-#ifndef M_PI
 #define M_PI 3.14159265358979323846
-#endif
 
 // Adjust numbers to be displayed rounded to a certain number of decimals
 double adjustNumbers(double _dbl) {
@@ -17,12 +15,13 @@ double adjustNumbers(double _dbl) {
 
 // Function to perform the quadratic formula
 double quadraticSolution(double a, double b, double c) {
-    double quadraticPlus = (-b + sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
-    double quadraticNeg = (-b - sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
-    if (quadraticPlus > quadraticNeg)
-        return quadraticPlus;
+    std::cout << "A: " << a << " B: " << b << " C: " << c << std::endl;
+    double quatradicPlus = (-b + sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
+    double quatradicNeg = (-b - sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
+    if (quatradicPlus > quatradicNeg)
+        return quatradicPlus;
     else
-        return quadraticNeg;
+        return quatradicNeg;
 }
 
 int main()
@@ -49,20 +48,26 @@ int main()
 
     // Calculate initial velocities in x, y, and z directions
     double vx = v0 * cos(alpha);
-    double vy = v0 * cos(beta);
+    double vy = v0 * cos(beta); // cos beta
     double vz = v0 * cos(gamma);
+    std::cout << vy << std::endl;
 
     // Assuming no air resistance
     double g = -9.81;
 
     // Calculate time of flight
-    double time = quadraticSolution(g / 2, vy, -initialHeight);
+    double time = quadraticSolution(g / 2, vy, initialHeight);
+    double height = 0;
+
+    // Set screen size
+    const int screenWidth = 400;
+    const int screenHeight = 400;
+    const int scale = 20;
+    const int trajectoryPoints = 10;
 
     // Create SFML windows for top-down and side views
-    sf::RenderWindow topDownView(sf::VideoMode(800, 400), "Top-Down View");
-    sf::RenderWindow sideView(sf::VideoMode(800, 400), "Side View");
-
-
+    sf::RenderWindow topDownView(sf::VideoMode(screenWidth, screenHeight), "Top-Down View");
+    sf::RenderWindow sideView(sf::VideoMode(screenWidth, screenHeight), "Side View");
 
     // Main loop
     while (topDownView.isOpen() && sideView.isOpen())
@@ -85,23 +90,26 @@ int main()
         sideView.clear(sf::Color::White);
 
         // Draw the trajectory in the top-down view
-        sf::VertexArray trajectoryTop(sf::LineStrip);
-        for (int t = 0; t <= 100; ++t)
+        sf::VertexArray trajectoryTop(sf::LineStrip, trajectoryPoints);
+        for (int i = 0; i < trajectoryPoints; ++i)
         {
-            double x = t; // Simplified trajectory for debugging
-            double y = t * t / 100.0; // Simplified trajectory for debugging
-            trajectoryTop.append(sf::Vector2f(static_cast<float>(x), static_cast<float>(-y))); // Invert y-axis
+            double t = (double)i / (double)trajectoryPoints * time;
+            double x = vx * t;
+            double z = vz * t;
+            trajectoryTop[i].position = sf::Vector2f(x * scale, screenHeight - z * scale); // Start from bottom left corner
+            trajectoryTop[i].color = sf::Color::Black;
         }
         topDownView.draw(trajectoryTop);
 
         // Draw the trajectory in the side view
-        sf::VertexArray trajectorySide(sf::LineStrip, static_cast<std::size_t>(time * 10)); // Adjust as needed
-        for (int t = 0; t <= time * 10 && t < trajectorySide.getVertexCount(); ++t)
+        sf::VertexArray trajectorySide(sf::LineStrip, trajectoryPoints);
+        for (int i = 0; i < trajectoryPoints; ++i)
         {
-            double z = vz * t / 10; // Scale down by 10 for better visualization
-            double y = initialHeight + vy * t / 10 + 0.5 * g * pow(t / 10, 2); // Scale down by 10 for better visualization
-            trajectorySide[t].position = sf::Vector2f(static_cast<float>(z), static_cast<float>(-y)); // Invert y-axis
-            trajectorySide[t].color = sf::Color::Red;
+            double currentTime = (double)i / (double)trajectoryPoints * time;
+            double z = vz * currentTime;
+            double y = vy * currentTime + 0.5 * g * currentTime * currentTime + initialHeight;
+            trajectorySide[i].position = sf::Vector2f(z * scale, screenHeight - y * scale); // Start from bottom left corner
+            trajectorySide[i].color = sf::Color::Black;
         }
         sideView.draw(trajectorySide);
 
@@ -109,6 +117,16 @@ int main()
         topDownView.display();
         sideView.display();
     }
+
+    // Calculate maximum height
+    height = (pow(vy, 2) + (2 * g) * initialHeight) / (-2 * g);
+
+    // Output results
+    std::cout << std::endl;
+    std::cout << "Time of flight: " << adjustNumbers(time) << " seconds" << std::endl;
+    std::cout << "Maximum height: " << adjustNumbers(height) << " meters" << std::endl;
+    std::cout << "X of landing position: " << adjustNumbers(vx * time / 2) << " meters" << std::endl;
+    std::cout << "Z of landing position: " << adjustNumbers(vz * time / 2) << " meters" << std::endl;
 
     return 0;
 }
@@ -178,8 +196,8 @@ int main()
     std::cout << std::endl;
     std::cout << "Time of flight: " << adjustNumbers(time) << " seconds" << std::endl;
     std::cout << "Maximum height: " << adjustNumbers(height) << " meters" << std::endl;
-    std::cout << "X of landing position: " << adjustNumbers(vx * time) << " meters" << std::endl;
-    std::cout << "Z of landing position: " << adjustNumbers(vz * time) << " meters" << std::endl;
+    std::cout << "X of landing position: " << adjustNumbers(vx * time / 2) << " meters" << std::endl;
+    std::cout << "Z of landing position: " << adjustNumbers(vz * time / 2) << " meters" << std::endl;
 
     return 0;
 }
