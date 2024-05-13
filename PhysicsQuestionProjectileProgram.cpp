@@ -15,7 +15,6 @@ double adjustNumbers(double _dbl) {
 
 // Function to perform the quadratic formula
 double quadraticSolution(double a, double b, double c) {
-    std::cout << "A: " << a << " B: " << b << " C: " << c << std::endl;
     double quatradicPlus = (-b + sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
     double quatradicNeg = (-b - sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
     if (quatradicPlus > quatradicNeg)
